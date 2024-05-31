@@ -13,7 +13,8 @@ const getState = ({ getStore, getActions, setStore }) => {
 					background: "white",
 					initial: "white"
 				}
-			]
+			],
+			// token: sessionStorage.getItem('jwt-token') || null,
 		},
 		actions: {
 			// Use getActions to call a function within a fuction
@@ -46,10 +47,30 @@ const getState = ({ getStore, getActions, setStore }) => {
 
 				//reset the global store
 				setStore({ demo: demo });
-			}
+			},
 			// login
-		}
-	};
+		// 	login: async (email, password) => {
+		// 		const resp = await fetch(process.env.BACKEND_URL + "/private", {
+		// 			method: 'POST',
+		// 			headers: { 'Content-Type': 'application/json'},
+		// 			body: JSON.stringify({email, password})
+
+		// 		});
+		// 		if (resp.ok){
+		// 			const data = await resp.json();
+		// 			sessionStorage.setItem('jwt-token', data.access_token);
+		// 			setStore({ token: data,access_token});
+		// 		} else {
+		// 			throw new Error('login failed');
+		// 		}
+		// },
+
+		// logout: () => {
+		// 	sessionStorage.removeItem('jwt-token');
+		// 	setStore({ token: null});
+		// },
+	}
+};
 };
 
 export default getState;

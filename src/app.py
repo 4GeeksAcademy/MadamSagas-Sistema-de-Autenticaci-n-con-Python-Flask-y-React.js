@@ -16,7 +16,7 @@ from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from flask_bcrypt import Bcrypt
 
 # from models import Person
 
@@ -28,6 +28,8 @@ app.url_map.strict_slashes = False
 
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT-KEY") #super secret
 jwt = JWTManager(app)
+
+bcrypt = Bcrypt(app)
 # database condiguration
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
@@ -76,7 +78,24 @@ def serve_any_other_file(path):
     response.cache_control.max_age = 0  # avoid cache memory
     return response
 
-@app.route('/signup', methods=['POST'])
+# @app.route('/api/signup', methods=['POST'])
+# def signup():
+#     body = request.get_json(silent=True)
+#     if body is None:
+#         return jsonify({'msg': "Body is empty"}), 400
+#     if "email" not in body or "password" not in body:
+#         return jsonify({'msg': " Email and password are required"}), 400
+    
+#     new_user = User(email=body['email'], password=body['password'], is_active=True)
+#     try:
+#         db.session.add(new_user)
+#         db.session.commit()
+#     except Exception as e:
+#         return jsonify({'msg': str(e)}), 500
+    
+#     return jsonify({'msg': 'User created successfully'}), 201
+
+@app.route('/api/signup', methods = ['POST'])
 def signup():
     body = request.get_json(silent=True)
     if body is None:
@@ -84,19 +103,22 @@ def signup():
     if "email" not in body or "password" not in body:
         return jsonify({'msg': " Email and password are required"}), 400
     
-    new_user = User(email=body['email'], password=body['password'], is_active=True)
-    try:
-        db.session.add(new_user)
-        db.session.commit()
-    except Exception as e:
-        return jsonify({'msg': str(e)}), 500
-    
+    new_user = User()
+    new_user.email = body['email']
+    # Al registrar un usuario nuevo se debe encriptar la contraseña
+    # y guardarla en el nuevo registro
+    # por eso el bcrypt.generate_password_has y esto ('utf-8') 
+    # corrsponde a la version del python
+    new_user.password = bcrypt.generate_password_hash(body['password']).decode('utf-8')
+    new_user.is_active = True
+    db.session.add(new_user)
+    db.session.commit()
+
     return jsonify({'msg': 'User created successfully'}), 201
 
 
 
-
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login():
     body = request.get_json(silent=True)
     if body is None:
@@ -108,10 +130,12 @@ def login():
     
     user = User.query.filter_by(email=body['email']).all()
     if len(user) == 0:
-        return jsonify({'msg': "User or password invalid"}), 400
-    
-    if user[0].password != body['password']:
-        return jsonify({'msg': "User or password invalid"}), 400
+        return jsonify({'msg': "User or password invalid"}), 
+    # Devuelve true si coinciden las contraseñas, false cuando no
+    # revisa la contrasen1a encriptada
+    correct_password = (bcrypt.check_password_hash(user[0].password, body['password']))
+    if correct_password is False:
+            return jsonify({'msg': "User or password invalid"}), 400
     access_token = create_access_token(identity=user[0].email)
     return jsonify({'msg': 'ok', 'access_token': access_token}), 200
 
@@ -139,7 +163,7 @@ def login():
 #     return jsonify({'msg': 'ok', 'access_token': access_token}), 200
 
 # this only runs if `$ python src/main.py` is executed
-@app.route('/privete', methods=['GET'])
+@app.route('/api/privete', methods=['GET'])
 @jwt_required()
 def privete():
     email = get_jwt_identity()
