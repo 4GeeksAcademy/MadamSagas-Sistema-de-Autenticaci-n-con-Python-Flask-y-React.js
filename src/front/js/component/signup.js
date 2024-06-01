@@ -57,7 +57,7 @@ const Signup = () => {
         <div className="row mb-3 d-flex justify-content-center">
           <div className="col-6 d-grid gap-2 col-6 mx-auto">
             <button className="btn btn-success" type="submit">
-              Sign Up
+              Sign up
             </button>
           </div>
         </div>
@@ -65,7 +65,7 @@ const Signup = () => {
         <div className="row mb-1 d-flex justify-content-center">
           <div className="col-6">
             <Link to="/login">
-              <a> Alredy a member? Log In</a>
+              <a> Alredy a member? Log in</a>
             </Link>
           </div>
         </div>

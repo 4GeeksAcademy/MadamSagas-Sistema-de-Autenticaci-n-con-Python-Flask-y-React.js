@@ -95,7 +95,7 @@ def serve_any_other_file(path):
     
 #     return jsonify({'msg': 'User created successfully'}), 201
 
-@app.route('/api/signup', methods = ['POST'])
+@app.route('/signup', methods = ['POST'])
 def signup():
     body = request.get_json(silent=True)
     if body is None:
@@ -118,7 +118,7 @@ def signup():
 
 
 
-@app.route('/api/login', methods=['POST'])
+@app.route('/login', methods=['POST'])
 def login():
     body = request.get_json(silent=True)
     if body is None:
@@ -128,15 +128,15 @@ def login():
     if "password" not in body:
         return jsonify({'msg': "field password is required"}), 400
     
-    user = User.query.filter_by(email=body['email']).all()
-    if len(user) == 0:
+    user = User.query.filter_by(email=body['email']).first()
+    if user is None:
         return jsonify({'msg': "User or password invalid"}), 
     # Devuelve true si coinciden las contraseñas, false cuando no
     # revisa la contrasen1a encriptada
-    correct_password = (bcrypt.check_password_hash(user[0].password, body['password']))
+    correct_password = (bcrypt.check_password_hash(user.password, body['password']))
     if correct_password is False:
             return jsonify({'msg': "User or password invalid"}), 400
-    access_token = create_access_token(identity=user[0].email)
+    access_token = create_access_token(identity=user.email)
     return jsonify({'msg': 'ok', 'access_token': access_token}), 200
 
 # @app.route('/login', methods=['POST'])
@@ -163,7 +163,7 @@ def login():
 #     return jsonify({'msg': 'ok', 'access_token': access_token}), 200
 
 # this only runs if `$ python src/main.py` is executed
-@app.route('/api/privete', methods=['GET'])
+@app.route('/private', methods=['GET'])
 @jwt_required()
 def privete():
     email = get_jwt_identity()

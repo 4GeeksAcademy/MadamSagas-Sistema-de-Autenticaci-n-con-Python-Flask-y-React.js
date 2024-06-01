@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 const Private = () => {
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
+    const token = sessionStorage.getItem("token");
 
     useEffect(() => {
         const token = sessionStorage.getItem('jwt-token');
